@@ -7,21 +7,23 @@ on init
     export ANDROID_ROOT /system
     export ANDROID_DATA /data
     export EXTERNAL_STORAGE /sdcard
+    export SD_EXT_DIRECTORY /sd-ext
 
+    mkdir /etc
     symlink /system/etc /etc
+    symlink /res/recovery.fstab /etc/recovery.fstab
 
+    mkdir /sd-ext
     mkdir /sdcard
+    mkdir /external_sd
     mkdir /preload
     mkdir /system
     mkdir /data
     mkdir /cache
     mkdir /efs
-    mkdir /tmp
     mkdir /dbdata
 
     mkdir /mnt 0775 root root
-
-    #mount /tmp /tmp tmpfs   
 
 on early-fs
 
@@ -43,7 +45,7 @@ on early-fs
 
 on fs
     mount tmpfs tmpfs /tmp
-    mount rfs /dev/block/stl9 /system check=no
+    mount rfs /dev/block/stl11 /cache check=no
 
 # SEC_DMCRYPT for MC_CRYPT_ROOT before apply_disk_policy or apply_sec_devenc_init
     #chown system system /efs
@@ -84,8 +86,8 @@ service recovery /sbin/recovery
 service adbd /sbin/adbd recovery
 	disabled
 
-#on property:persist.service.adb.enable=1
-#    start adbd
+on property:persist.service.adb.enable=1
+    start adbd
 
-#on property:persist.service.adb.enable=0
-#    stop adbd
+on property:persist.service.adb.enable=0
+    stop adbd
