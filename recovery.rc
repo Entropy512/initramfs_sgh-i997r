@@ -10,6 +10,7 @@ on init
     export SD_EXT_DIRECTORY /sd-ext
 
     mkdir /etc
+    symlink /system/etc /etc
     symlink /res/recovery.fstab /etc/recovery.fstab
 
     mkdir /sd-ext
