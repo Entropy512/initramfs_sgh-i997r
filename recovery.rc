@@ -8,7 +8,8 @@ on init
     export ANDROID_DATA /data
     export EXTERNAL_STORAGE /sdcard
 
-    # symlink /system/etc /etc
+    mkdir /etc
+    symlink /res/recovery.fstab /etc/recovery.fstab
 
     mkdir /sdcard
     mkdir /external_sd

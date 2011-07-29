@@ -1,18 +1,13 @@
-[device]
-# mount point	fstype		device			format option	mount option
-/efs		rfs		/dev/block/stl3		default		default
-/system		rfs		/dev/block/stl9		default		default
-/dbdata		rfs		/dev/block/stl10	rfs16		default
-/cache		rfs		/dev/block/stl11	rfs16		default
-/sdcard		vfat		/dev/block/mmcblk0p1	default		default
-/data		rfs		/dev/block/mmcblk0p2	rfs32		default
+# mount point	fstype		device
 
-[format]
-#index		option
-rfs16	"/sbin/fat.format -F 16 -s 1 -S 4096"
-rfs32	"/sbin/fat.format -F 32 -s 4 -S 4096"
+/recovery	bml		/dev/block/bml8
+/boot		bml		/dev/block/bml7
 
-[mount]
-#index		flags					options
-rfs_opt1	nosuid,noatime,nodev,nodiratime		"check=no"
-rfs_opt2	ro,nosuid,nodev				"check=no"
+/system		rfs		/dev/block/stl9
+/cache		rfs		/dev/block/stl11
+/dbdata		rfs		/dev/block/stl10
+
+/sdcard		vfat	/dev/block/mmcblk0p1
+/data		rfs		/dev/block/mmcblk0p2
+
+/external_sd		vfat		/dev/block/mmcblk1p1
