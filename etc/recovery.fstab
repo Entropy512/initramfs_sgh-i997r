@@ -3,11 +3,11 @@
 /recovery	bml		/dev/block/bml8
 /boot		bml		/dev/block/bml7
 
-/system		ext4		/dev/block/stl9
-/cache		ext4		/dev/block/stl11
-/dbdata		ext4		/dev/block/stl10
+/system		rfs		/dev/block/stl9
+/cache		rfs		/dev/block/stl11
+/dbdata		rfs		/dev/block/stl10
 
-/sdcard		vfat		/dev/block/mmcblk0p1
-/data		ext4		/dev/block/mmcblk0p2
+/sdcard		vfat	/dev/block/mmcblk0p1
+/data		rfs		/dev/block/mmcblk0p2
 
-/emmc		vfat		/dev/block/mmcblk1p1
+/external_sd		vfat		/dev/block/mmcblk1p1

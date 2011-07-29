@@ -11,6 +11,7 @@ on init
     symlink /system/etc /etc
 
     mkdir /sdcard
+    mkdir /external_sd
     mkdir /preload
     mkdir /system
     mkdir /data
