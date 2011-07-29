@@ -127,6 +127,7 @@ on fs
     # mount yaffs2 mtd@userdata /data nosuid nodev
     # mount yaffs2 mtd@cache /cache nosuid nodev
     mount rfs /dev/block/stl9 /system check=no
+    mount ext4 /dev/block/stl9 /system remount ro
 
     # Temp add for FY -> GB update problem 
     # After update GB, need to remove
@@ -137,10 +138,12 @@ on fs
     copy /tmp/libz.so /system/lib/libz.so
     copy /tmp/libstdc++.so /system/lib/libstdc++.so
 		
-    # exec umount
+    #exec umount
     
     mount rfs /dev/block/stl9 /system check=no
+    mount ext4 /dev/block/stl9 /system remount ro
     mount rfs /dev/block/stl9 /system ro remount
+    mount ext4 /dev/block/stl9 /system remount ro
 
 # SEC_DMCRYPT for MC_CRYPT_ROOT before apply_disk_policy or apply_sec_devenc_init
     #chown system system /efs
@@ -543,7 +546,7 @@ on boot
     setprop ro.BACKUP_APP_ADJ 2
     setprop ro.HOME_APP_ADJ 4
     setprop ro.HIDDEN_APP_MIN_ADJ 7
-    setprop ro.CONTENT_PROVIDER_MEM 14
+    setprop ro.CONTENT_PROVIDER_MEM 13312
     setprop ro.EMPTY_APP_ADJ 15
 
 # to enable wifi
@@ -558,9 +561,9 @@ on boot
     setprop ro.SECONDARY_SERVER_MEM 6144
     setprop ro.BACKUP_APP_MEM 6144
     setprop ro.HOME_APP_MEM 6144
-    setprop ro.HIDDEN_APP_MEM 10240
-    setprop ro.CONTENT_PROVIDER_MEM 11264
-    setprop ro.EMPTY_APP_MEM 12288
+    setprop ro.HIDDEN_APP_MEM 11264
+    setprop ro.CONTENT_PROVIDER_MEM 13312
+    setprop ro.EMPTY_APP_MEM 16384
 
 # Write value must be consistent with the above properties.
 # Note that the driver only supports 6 slots, so we have combined some of
@@ -570,7 +573,7 @@ on boot
 
     write /proc/sys/vm/overcommit_memory 1
     write /proc/sys/vm/min_free_order_shift 4
-    write /sys/module/lowmemorykiller/parameters/minfree 2560,4096,6144,10240,11264,12288
+    write /sys/module/lowmemorykiller/parameters/minfree 2560,4096,6144,11264,13312,16384
 
     # Set init its forked children's oom_adj.
     write /proc/1/oom_adj -16
@@ -579,8 +582,8 @@ on boot
     chmod 0775 /efs/.files
 
     # Tweak background writeout
-    write /proc/sys/vm/dirty_expire_centisecs 200
-    write /proc/sys/vm/dirty_background_ratio  5
+    write /proc/sys/vm/dirty_expire_centisecs 800
+    write /proc/sys/vm/dirty_background_ratio 2
 
     # Permissions for System Server and daemons.
     chown radio system /sys/android_power/state
@@ -919,3 +922,7 @@ service iqbridged /system/xbin/iqbridged
 		group system radio inet net_raw
 		oneshot
 # C I Q   B R I D G E   D A E M O N 
+
+service run_parts /voodoo/scripts/run-parts.sh /system/etc/init.d
+  oneshot 
+

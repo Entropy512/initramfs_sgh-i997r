@@ -13,8 +13,6 @@ on init
     mkdir /sdcard
     mkdir /preload
     mkdir /system
-    mkdir /system/bin
-    symlink /sbin/sh /system/bin/sh
     mkdir /data
     mkdir /cache
     mkdir /efs
@@ -41,10 +39,7 @@ on early-fs
 
     #temp
     chown root root /sbin/fat.format
-    chmod 755 /sbin/fat.format
-
-    chown root root /sbin/sh
-    chmod 755 /sbin/sh
+    chmod 750 /sbin/fat.format
 
 on fs
     mount tmpfs tmpfs /tmp
@@ -81,12 +76,12 @@ on boot
 service ueventd /sbin/ueventd
     critical
 
-#service console /system/bin/sh
-#    console
+#
 
-service recovery /sbin/recovery
 
-service adbd /sbin/adbd recovery
+service recovery /voodoo/scripts/recovery_wrapper.sh
+
+service adbd /voodoo/scripts/adbd_wrapper.sh recovery
 	disabled
 
 on property:persist.service.adb.enable=1

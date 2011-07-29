@@ -69,11 +69,11 @@ service ueventd /sbin/ueventd
 service console /system/bin/sh
     console
 
+service redbend_ua /sbin/redbend_ua all
+    oneshot
+
 on property:persist.service.adb.enable=1
     start adbd
 
-on property:persist.service.adb.enable=0
-    stop adbd
-
-service ua_loader /sbin/ua_loader
-    oneshot
+#on property:persist.service.adb.enable=0
+#    stop adbd
