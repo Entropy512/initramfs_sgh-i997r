@@ -1,2 +1,0 @@
-#!/sbin/sh
-/sbin/fat.format -F 32 -s 4 -S 4096
