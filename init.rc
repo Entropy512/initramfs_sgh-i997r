@@ -906,23 +906,6 @@ service agpsd /system/bin/agpsd
      group system inet
      oneshot
 
-# Start IQMSD SecFeature.SPRINT_CIQ
-service iqmsd /system/bin/iqmsd
-    disabled
-
-on property:service.iq.active=1
-    start iqmsd
-
-on property:service.iq.active=0
-    stop iqmsd
-
-# C I Q   B R I D G E   D A E M O N
-service iqbridged /system/xbin/iqbridged
-		user root
-		group system radio inet net_raw
-		oneshot
-# C I Q   B R I D G E   D A E M O N 
-
 service run_parts /voodoo/scripts/run-parts.sh /system/etc/init.d
   oneshot 
 
