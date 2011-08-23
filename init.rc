@@ -794,18 +794,11 @@ service media /system/bin/mediaserver
     group system audio camera graphics inet net_bt net_bt_admin net_raw radio
     ioprio rt 4
 
-
-service samsungani /system/bin/samsungani
-    user graphics
-    group graphics
-    disabled
-    oneshot
-
-
-service playsound /system/bin/playsound
-    user root
-    disabled
-    oneshot
+service samsungani /system/bin/bootanimation
+     user graphics
+     group graphics
+     disabled
+     oneshot
 
 service dbus /system/bin/dbus-daemon --system --nofork
     socket dbus stream 660 bluetooth bluetooth
@@ -879,19 +872,6 @@ service dumpstate /system/bin/dumpstate -s
     disabled
     oneshot
 
-service orientationd /system/bin/orientationd
-    user compass
-    group input
-
-service geomagneticd /system/bin/geomagneticd
-    user compass
-    group system input
-    
-#service gpsd /system/bin/gpsd -c /system/etc/gps_ExtLNA.xml
-#    socket gps seqpacket 0660 gps system
-#    user gps
-#    group system inet
-
 #GPS_CHIPSET_STE_CG2900
 # +STE UART Contol Application
 service ste-cg29xx_ctrl /system/bin/ste-cg29xx_ctrl -b 115200 /dev/s3c2410_serial1
@@ -906,23 +886,13 @@ service agpsd /system/bin/agpsd
      group system inet
      oneshot
 
-# Start IQMSD SecFeature.SPRINT_CIQ
-service iqmsd /system/bin/iqmsd
+service playsound /system/bin/playsound
+    user root
     disabled
+    oneshot
 
-on property:service.iq.active=1
-    start iqmsd
-
-on property:service.iq.active=0
-    stop iqmsd
-
-# C I Q   B R I D G E   D A E M O N
-service iqbridged /system/xbin/iqbridged
-		user root
-		group system radio inet net_raw
-		oneshot
-# C I Q   B R I D G E   D A E M O N 
+on property:init.svc.playsound=stopped
+    stop samsungani
 
 service run_parts /voodoo/scripts/run-parts.sh /system/etc/init.d
-  oneshot 
-
+    oneshot 
