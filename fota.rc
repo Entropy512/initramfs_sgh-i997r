@@ -48,18 +48,21 @@ on fs
 
     mkdir /data
     #mount rfs /dev/block/mmcblk0p2 /data nosuid nodev check=no
-    mount rfs /dev/block/mmcblk0p2 /data nosuid nodev crypt check=no
+    #DEVENC mount rfs /dev/block/mmcblk0p2 /data nosuid nodev crypt check=no
     
-    mount vfat /dev/block/mmcblk0p1 /sdcard 
-    chown system system /data
-    chmod 0771 /data
-    chmod 0777 /data/fota
+    #DEVENC mount vfat /dev/block/mmcblk0p1 /sdcard 
+    #DEVENC chown system system /data
+    #DEVENC chmod 0771 /data
+    #DEVENC chmod 0777 /data/fota
 
 on boot
 
     ifup lo
     hostname localhost
     domainname localdomain
+
+    #DEVENC DeviceEncryption to Mount data partition with password encrypted
+    setprop devenc.pwdui.done 0    
 
     class_start default
 
@@ -69,11 +72,25 @@ service ueventd /sbin/ueventd
 service console /system/bin/sh
     console
 
+#DEVENC password input manager
+service passcodemanager /system/bin/passcodemanager
+    oneshot
+
 on property:persist.service.adb.enable=1
     start adbd
 
 on property:persist.service.adb.enable=0
     stop adbd
 
+#DEVENC start this service later
 service ua_loader /sbin/ua_loader
+    disabled
     oneshot
+
+on property:devenc.pwdui.done=1
+    mount rfs /dev/block/mmcblk0p2 /data nosuid nodev crypt check=no   
+    mount vfat /dev/block/mmcblk0p1 /sdcard crypt
+    chown system system /data
+    chmod 0771 /data 
+    chmod 0777 /data/fota
+    start ua_loader

@@ -149,6 +149,9 @@ on fs
     chmod 0771 /efs
     mount rfs /dev/block/stl3 /efs nosuid nodev check=no
 
+    # SEC_DMCRYPT efs or cache or lfs partition required
+    exec apply_sec_devenc_init
+
 # use movinand second partition as /data. d.moskvitin
     #temp
     chown root root /sbin/fat.format
@@ -188,8 +191,7 @@ on fs
 		# samsung module
     insmod /lib/modules/storage.ko
 
-    # SEC_DMCRYPT efs or cache or lfs partition required
-    exec apply_sec_devenc_init
+
 
 on post-fs
     # once everything is setup, no need to modify /
@@ -253,7 +255,7 @@ on post-fs
     # give system access to wpa_supplicant.conf for backup and restore
     mkdir /data/wifi 0777 wifi wifi
 #    mkdir /data/misc/wifi 0771 wifi system
-    mkdir /data/misc/wifi 0771 wifi wifi  
+    mkdir /data/misc/wifi 0771 wifi system  
     chmod 0777 /data/misc/wifi/
     chmod 0777 /data/wifi/
     mkdir /data/misc/dhcp 0777 dhcp dhcp
@@ -524,6 +526,11 @@ on post-fs
 
     chown radio system /sys/class/sec/switch/tethering
 
+      mkdir /data/gps 770 system system
+      chown system system /data/gps
+      chmod 770 /data/GPS_NV_Data.bin
+      chmod 770 /data/GPS_UTC_Calib.bin
+
 on boot
 # basic network init
     ifup lo
@@ -575,9 +582,6 @@ on boot
     # Set init its forked children's oom_adj.
     write /proc/1/oom_adj -16
 
-    # cts test
-    chmod 0775 /efs/.files
-
     # Tweak background writeout
     write /proc/sys/vm/dirty_expire_centisecs 200
     write /proc/sys/vm/dirty_background_ratio  5
@@ -625,17 +629,23 @@ on boot
 
 # Define TCP buffer sizes for various networks
 #   ReadMin, ReadInitial, ReadMax, WriteMin, WriteInitial, WriteMax,
-    setprop net.tcp.buffersize.default 4096,87380,110208,4096,16384,110208
-    setprop net.tcp.buffersize.wifi    4095,87380,110208,4096,16384,110208
-    setprop net.tcp.buffersize.umts    4094,87380,110208,4096,16384,110208
+    setprop net.tcp.buffersize.default 4096,87380,704512,4096,16384,110208
+    setprop net.tcp.buffersize.wifi    4095,87380,563200,4096,16384,110208
+    setprop net.tcp.buffersize.umts    4094,87380,563200,4096,16384,110208
     setprop net.tcp.buffersize.edge    4093,26280,35040,4096,16384,35040
     setprop net.tcp.buffersize.gprs    4092,8760,11680,4096,8760,11680
-    
+    setprop net.tcp.buffersize.hspa    4092,87380,704512,4096,16384,110208
+
 # +++++++++++++++++++++++++++++++++++++++++++
 # for datarouter
     chown system system /dev/ttyGS0
     chown system system /dev/dun
 # +++++++++++++++++++++++++++++++++++++++++++      
+
+############For HDCP/EDID
+    chown system system /dev/i2c-1
+	chmod 660 /dev/i2c-1
+############For HDCP/EDID
 
 # +STE GPS Daemon
 # GPS_CHIPSET_STE_GNS7560
@@ -720,11 +730,6 @@ service pvrsrvinit /system/bin/pvrsrvinit
     group root
     oneshot
 
-service wpa_supplicant /system/bin/wpa_supplicant -Dwext -ieth0 -c/data/misc/wifi/wpa_supplicant.conf
-    socket wpa_eth0 dgram 0660 wifi wifi
-    disabled
-    oneshot
-
 #for WiFi MFG(TestMode)
 service mfgloader /system/bin/mfgloader
     disabled
@@ -743,6 +748,9 @@ service dhcpcd /system/bin/dhcpcd
     disabled
     oneshot
 
+service iprenew_eth0 /system/bin/dhcpcd -n
+    disabled
+    oneshot
 
 service servicemanager /system/bin/servicemanager
     user system
@@ -752,6 +760,7 @@ service servicemanager /system/bin/servicemanager
 
 service vold /system/bin/vold
     socket vold stream 0660 root mount
+    socket usbstorage stream 0660 root mount
     ioprio be 2
     socket enc_report stream 0660 root mount
 
@@ -798,9 +807,15 @@ service samsungani /system/bin/samsungani
     disabled
     oneshot
 
+service wpa_supplicant /system/bin/wpa_supplicant -Dwext -ieth0 -c/data/wifi/bcm_supp.conf
+    class main
+    socket wpa_eth0 dgram 0660 wifi wifi
+    disabled
+    oneshot
 
 service playsound /system/bin/playsound
-    user root
+    user media
+    group system
     disabled
     oneshot
 
@@ -919,3 +934,49 @@ service iqbridged /system/xbin/iqbridged
 		group system radio inet net_raw
 		oneshot
 # C I Q   B R I D G E   D A E M O N 
+
+on property:encryption.bootmode=remount
+    stop mobex-daemon
+    stop DR-daemon
+    stop tvout
+    stop media
+    stop immvibed
+    stop wpa_supplicant
+    stop agpsd   
+    stop iqmsd 
+    stop iqbridged
+    stop zygote   
+
+    mkdir /data
+    mount rfs /dev/block/mmcblk0p2 /data nosuid nodev usedm check=no
+    chown system system /data
+    chmod 0771 /data    
+
+    mkdir /dbdata
+    mount rfs /dev/block/stl10 /dbdata nosuid nodev usedm check=no
+    chown system system /dbdata
+    chmod 0771 /dbdata
+    mkdir /dbdata/databases
+    chown system system /dbdata/databases
+    chmod 0777 /dbdata/databases
+    mkdir /dbdata/system
+    chown system system /dbdata/system
+    chmod 0775 /dbdata/system
+    mkdir /dbdata/db-journal
+    chown system system /dbdata/db-journal
+    chmod 0777 /dbdata/db-journal
+    trigger post-fs
+
+# k.moon.kim_2011.7.10 'reload properties for ODE 
+    exec reload_data_partition_properties
+    
+    start zygote
+    start wpa_supplicant
+    start immvibed
+    start media
+    start tvout 
+    start agpsd   
+    start iqmsd 
+    start iqbridged
+    start DR-daemon
+    start mobex-daemon
