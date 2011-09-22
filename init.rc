@@ -334,6 +334,9 @@ on post-fs
   chmod 0775 /efs/.files/.awt01
   chmod 0775 /efs/.files/.dtt33
   chmod 0775 /efs/.files/.mv309
+
+#CTS for efs partition
+chmod 0775 /efs/.files
 	
 	# Setting device permissions for /dev/fmradio
     chown system system /dev/fmradio
