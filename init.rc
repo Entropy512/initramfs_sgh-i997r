@@ -895,7 +895,8 @@ service agpsd /system/bin/agpsd
      oneshot
 
 service playsound /system/bin/playsound
-    user root
+    user media
+    group system
     disabled
     oneshot
 
