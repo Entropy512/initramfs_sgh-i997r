@@ -152,6 +152,9 @@ on fs
     chmod 0771 /efs
     mount rfs /dev/block/stl3 /efs nosuid nodev check=no
 
+# SEC_DMCRYPT efs or cache or lfs partition required
+    exec apply_sec_devenc_init
+
 # use movinand second partition as /data. d.moskvitin
     #temp
     chown root root /sbin/fat.format
@@ -188,11 +191,8 @@ on fs
     mount j4fs /dev/block/stl6 /mnt/.lfs
     insmod /lib/modules/param.ko
     
-		# samsung module
+	# samsung module
     insmod /lib/modules/storage.ko
-
-    # SEC_DMCRYPT efs or cache or lfs partition required
-    exec apply_sec_devenc_init
 
 on post-fs
     # once everything is setup, no need to modify /
@@ -255,8 +255,7 @@ on post-fs
     mkdir /data/misc/radio 0771 radio radio
     # give system access to wpa_supplicant.conf for backup and restore
     mkdir /data/wifi 0777 wifi wifi
-#    mkdir /data/misc/wifi 0771 wifi system
-    mkdir /data/misc/wifi 0771 wifi wifi  
+    mkdir /data/misc/wifi 0771 wifi system
     chmod 0777 /data/misc/wifi/
     chmod 0777 /data/wifi/
     mkdir /data/misc/dhcp 0777 dhcp dhcp
@@ -335,7 +334,8 @@ on post-fs
   chmod 0775 /efs/.files/.awt01
   chmod 0775 /efs/.files/.dtt33
   chmod 0775 /efs/.files/.mv309
-	
+  chmod 0775 /etc/.files	
+
 	# Setting device permissions for /dev/fmradio
     chown system system /dev/fmradio
     chmod 0660 /dev/fmradio
@@ -527,6 +527,11 @@ on post-fs
 
     chown radio system /sys/class/sec/switch/tethering
 
+    mkdir /data/gps 770 system system
+    chown system system /data/gps
+    chmod 770 /data/GPS_NV_Data.bin
+    chmod 770 /data/GPS_UTC_Calib.bin
+
 on boot
 # basic network init
     ifup lo
@@ -628,17 +633,23 @@ on boot
 
 # Define TCP buffer sizes for various networks
 #   ReadMin, ReadInitial, ReadMax, WriteMin, WriteInitial, WriteMax,
-    setprop net.tcp.buffersize.default 4096,87380,110208,4096,16384,110208
-    setprop net.tcp.buffersize.wifi    4095,87380,110208,4096,16384,110208
-    setprop net.tcp.buffersize.umts    4094,87380,110208,4096,16384,110208
+    setprop net.tcp.buffersize.default 4096,87380,704512,4096,16384,110208 
+    setprop net.tcp.buffersize.wifi    4095,87380,563200,4096,16384,110208
+    setprop net.tcp.buffersize.umts    4094,87380,563200,4096,16384,110208
     setprop net.tcp.buffersize.edge    4093,26280,35040,4096,16384,35040
     setprop net.tcp.buffersize.gprs    4092,8760,11680,4096,8760,11680
+    setprop net.tcp.buffersize.hsdpa   4092,87380,704512,4096,16384,110208
     
 # +++++++++++++++++++++++++++++++++++++++++++
 # for datarouter
     chown system system /dev/ttyGS0
     chown system system /dev/dun
 # +++++++++++++++++++++++++++++++++++++++++++      
+
+############For HDCP/EDID
+    chown system system /dev/i2c-1
+    chmod 660 /dev/i2c-1
+############For HDCP/EDID
 
 # +STE GPS Daemon
 # GPS_CHIPSET_STE_GNS7560
@@ -724,6 +735,7 @@ service pvrsrvinit /system/bin/pvrsrvinit
     oneshot
 
 service wpa_supplicant /system/bin/wpa_supplicant -Dwext -ieth0 -c/data/misc/wifi/wpa_supplicant.conf
+    class main
     socket wpa_eth0 dgram 0660 wifi wifi
     disabled
     oneshot
@@ -755,6 +767,7 @@ service servicemanager /system/bin/servicemanager
 
 service vold /system/bin/vold
     socket vold stream 0660 root mount
+    socket usbstorage stream 0660 root mount
     ioprio be 2
     socket enc_report stream 0660 root mount
 
@@ -887,7 +900,8 @@ service agpsd /system/bin/agpsd
      oneshot
 
 service playsound /system/bin/playsound
-    user root
+    user media
+    group system
     disabled
     oneshot
 
