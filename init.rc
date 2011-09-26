@@ -255,8 +255,8 @@ on post-fs
     mkdir /data/misc/radio 0771 radio radio
     # give system access to wpa_supplicant.conf for backup and restore
     mkdir /data/wifi 0777 wifi wifi
-#    mkdir /data/misc/wifi 0771 wifi system
-    mkdir /data/misc/wifi 0771 wifi wifi  
+    mkdir /data/misc/wifi 0771 wifi system
+#    mkdir /data/misc/wifi 0771 wifi wifi  
     chmod 0777 /data/misc/wifi/
     chmod 0777 /data/wifi/
     mkdir /data/misc/dhcp 0777 dhcp dhcp
@@ -730,6 +730,7 @@ service pvrsrvinit /system/bin/pvrsrvinit
     oneshot
 
 service wpa_supplicant /system/bin/wpa_supplicant -Dwext -ieth0 -c/data/misc/wifi/wpa_supplicant.conf
+    class main
     socket wpa_eth0 dgram 0660 wifi wifi
     disabled
     oneshot
