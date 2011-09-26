@@ -641,6 +641,11 @@ on boot
     chown system system /dev/dun
 # +++++++++++++++++++++++++++++++++++++++++++      
 
+############For HDCP/EDID
+    chown system system /dev/i2c-1
+    chmod 660 /dev/i2c-1
+############For HDCP/EDID
+
 # +STE GPS Daemon
 # GPS_CHIPSET_STE_GNS7560
 # create data/gps for GPS demon
