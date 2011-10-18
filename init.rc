@@ -634,7 +634,7 @@ on boot
 #   ReadMin, ReadInitial, ReadMax, WriteMin, WriteInitial, WriteMax,
     setprop net.tcp.buffersize.default 4096,87380,704512,4096,16384,110208
     setprop net.tcp.buffersize.wifi    4095,87380,563200,4096,16384,110208
-    setprop net.tcp.buffersize.umts    4094,87380,563200,4096,16384,110208
+    setprop net.tcp.buffersize.umts    4094,87380,288768,4096,16384,110208
     setprop net.tcp.buffersize.edge    4093,26280,35040,4096,16384,35040
     setprop net.tcp.buffersize.gprs    4092,8760,11680,4096,8760,11680
     setprop net.tcp.buffersize.hspa    4092,87380,704512,4096,16384,110208
@@ -921,8 +921,10 @@ service agpsd /system/bin/agpsd
      group system inet
      oneshot
 
-# Start IQMSD SecFeature.SPRINT_CIQ
+# Start IQMSD SecFeature.*_CIQ
 service iqmsd /system/bin/iqmsd
+    user root
+    group system radio inet net_raw
     disabled
 
 on property:service.iq.active=1
