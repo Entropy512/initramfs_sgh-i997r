@@ -20,12 +20,12 @@ extension_post_install_voldfstab()
 
 install_condition()
 {
-	test -f "/system/etc/vold.fstab"
+	test -f $dest
 }
 
 
 if install_condition; then
-	extension_update_old_froyo_voldfstab
+	extension_update_voldfstab
 else
 	echo "not installing $name"
 fi
