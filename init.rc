@@ -256,6 +256,10 @@ on post-fs
     # give system access to wpa_supplicant.conf for backup and restore
     mkdir /data/wifi 0777 wifi wifi
     mkdir /data/misc/wifi 0771 wifi system
+<<<<<<< HEAD
+=======
+#    mkdir /data/misc/wifi 0771 wifi wifi  
+>>>>>>> c5865403a57491c96c7f5ccc7297fa0674b6a34d
     chmod 0777 /data/misc/wifi/
     chmod 0777 /data/wifi/
     mkdir /data/misc/dhcp 0777 dhcp dhcp
@@ -519,7 +523,137 @@ on post-fs
 
     chown radio system /sys/class/sec/switch/tethering
 
-GPS Daemon
+on boot
+# basic network init
+    ifup lo
+    hostname localhost
+    domainname localdomain
+
+# set RLIMIT_NICE to allow priorities from 19 to -20
+    setrlimit 13 40 40
+
+# Define the oom_adj values for the classes of processes that can be
+# killed by the kernel.  These are used in ActivityManagerService.
+    setprop ro.FOREGROUND_APP_ADJ 0
+    setprop ro.VISIBLE_APP_ADJ 1
+    setprop ro.PERCEPTIBLE_APP_ADJ 1
+    setprop ro.HEAVY_WEIGHT_APP_ADJ 2
+    setprop ro.SECONDARY_SERVER_ADJ 2
+    setprop ro.BACKUP_APP_ADJ 2
+    setprop ro.HOME_APP_ADJ 4
+    setprop ro.HIDDEN_APP_MIN_ADJ 7
+    setprop ro.CONTENT_PROVIDER_ADJ 14
+    setprop ro.EMPTY_APP_ADJ 15
+
+# to enable wifi
+     setprop wifi.interface "eth0"
+
+# Define the memory thresholds at which the above process classes will
+# be killed.  These numbers are in pages (4k).
+    setprop ro.FOREGROUND_APP_MEM 2560
+    setprop ro.VISIBLE_APP_MEM 4096
+    setprop ro.PERCEPTIBLE_APP_MEM 4096
+    setprop ro.HEAVY_WEIGHT_APP_MEM 4096
+    setprop ro.SECONDARY_SERVER_MEM 6144
+    setprop ro.BACKUP_APP_MEM 6144
+    setprop ro.HOME_APP_MEM 6144
+    setprop ro.HIDDEN_APP_MEM 11264
+    setprop ro.CONTENT_PROVIDER_MEM 13312
+    setprop ro.EMPTY_APP_MEM 16384
+
+# Write value must be consistent with the above properties.
+# Note that the driver only supports 6 slots, so we have combined some of
+# the classes into the same memory level; the associated processes of higher
+# classes will still be killed first.
+    write /sys/module/lowmemorykiller/parameters/adj 0,1,2,7,14,15
+
+    write /proc/sys/vm/overcommit_memory 1
+    write /proc/sys/vm/min_free_order_shift 4
+    write /sys/module/lowmemorykiller/parameters/minfree 2560,4096,6144,11264,13312,16384
+
+    # Set init its forked children's oom_adj.
+    write /proc/1/oom_adj -16
+
+    # cts test
+    chmod 0775 /efs/.files
+
+    # Tweak background writeout
+    write /proc/sys/vm/dirty_expire_centisecs 800
+    write /proc/sys/vm/dirty_background_ratio 2
+
+    # Permissions for System Server and daemons.
+    chown radio system /sys/android_power/state
+    chown radio system /sys/android_power/request_state
+    chown radio system /sys/android_power/acquire_full_wake_lock
+    chown radio system /sys/android_power/acquire_partial_wake_lock
+    chown radio system /sys/android_power/release_wake_lock
+    chown radio system /sys/power/state
+    chown radio system /sys/power/wake_lock
+    chown radio system /sys/power/wake_unlock
+    chown radio system /sys/power/dvfslock_ctrl     
+    chmod 0660 /sys/power/state
+    chmod 0660 /sys/power/wake_lock
+    chmod 0660 /sys/power/wake_unlock
+    chmod 0660 /sys/power/dvfslock_ctrl    		
+    chown system system /sys/class/timed_output/vibrator/enable
+    chown system system /sys/class/leds/keyboard-backlight/brightness
+    chown system system /sys/class/leds/lcd-backlight/brightness
+    chown system system /sys/class/leds/button-backlight/brightness
+    chown system system /sys/class/leds/jogball-backlight/brightness
+    chown system system /sys/class/leds/red/brightness
+    chown system system /sys/class/leds/green/brightness
+    chown system system /sys/class/leds/blue/brightness
+    chown system system /sys/class/leds/red/device/grpfreq
+    chown system system /sys/class/leds/red/device/grppwm
+    chown system system /sys/class/leds/red/device/blink
+    chown system system /sys/class/leds/red/brightness
+    chown system system /sys/class/leds/green/brightness
+    chown system system /sys/class/leds/blue/brightness
+    chown system system /sys/class/leds/red/device/grpfreq
+    chown system system /sys/class/leds/red/device/grppwm
+    chown system system /sys/class/leds/red/device/blink
+    chown system system /sys/class/timed_output/vibrator/enable
+    chown system system /sys/module/sco/parameters/disable_esco
+    chown system system /sys/kernel/ipv4/tcp_wmem_min
+    chown system system /sys/kernel/ipv4/tcp_wmem_def
+    chown system system /sys/kernel/ipv4/tcp_wmem_max
+    chown system system /sys/kernel/ipv4/tcp_rmem_min
+    chown system system /sys/kernel/ipv4/tcp_rmem_def
+    chown system system /sys/kernel/ipv4/tcp_rmem_max
+    chown root radio /proc/cmdline
+
+# Define TCP buffer sizes for various networks
+#   ReadMin, ReadInitial, ReadMax, WriteMin, WriteInitial, WriteMax,
+    setprop net.tcp.buffersize.default 4096,87380,704512,4096,16384,110208
+    setprop net.tcp.buffersize.wifi    4095,87380,563200,4096,16384,110208
+    setprop net.tcp.buffersize.umts    4094,87380,563200,4096,16384,110208
+    setprop net.tcp.buffersize.hspa    4092,87380,704512,4096,16384,110208
+    setprop net.tcp.buffersize.edge    4093,26280,35040,4096,16384,35040
+    setprop net.tcp.buffersize.gprs    4092,8760,11680,4096,8760,11680
+    
+# +++++++++++++++++++++++++++++++++++++++++++
+# for datarouter
+    chown system system /dev/ttyGS0
+    chown system system /dev/dun
+# +++++++++++++++++++++++++++++++++++++++++++      
+
+############For HDCP/EDID
+    chown system system /dev/i2c-1
+    chmod 660 /dev/i2c-1
+############For HDCP/EDID
+
+# +STE GPS Daemon
+# GPS_CHIPSET_STE_GNS7560
+# create data/gps for GPS demon
+#    chown root system /dev/s3c2410_serial1
+#    chmod 660 /dev/s3c2410_serial1
+#    mkdir /data/gps 771 system system
+#    chown system system /data/gps
+#    chown root system /sys/class/gpio/gpio104/value
+#    chmod 664 /sys/class/gpio/gpio104/value
+#    chown root system /sys/class/gpio/gpio105/value
+#    chmod 664 /sys/class/gpio/gpio105/value
+# GPS_CHIPSET_STE_CG2900  
 #STE: Added for CG2900 Support	
 #+Scott.Re-setup permission right
       chown system system /dev/s3c2410_serial1
@@ -664,7 +798,7 @@ service media /system/bin/mediaserver
     group system audio camera graphics inet net_bt net_bt_admin net_raw radio
     ioprio rt 4
 
-service samsungani /system/bin/bootanimation
+service samsungani /vendor/scripts/bootanimation.sh
      user graphics
      group graphics
      disabled
