@@ -152,6 +152,9 @@ on fs
     chmod 0771 /efs
     mount rfs /dev/block/stl3 /efs nosuid nodev check=no
 
+# SEC_DMCRYPT efs or cache or lfs partition required
+    exec apply_sec_devenc_init
+
 # use movinand second partition as /data. d.moskvitin
     #temp
     chown root root /sbin/fat.format
@@ -188,11 +191,8 @@ on fs
     mount j4fs /dev/block/stl6 /mnt/.lfs
     insmod /lib/modules/param.ko
     
-		# samsung module
+	# samsung module
     insmod /lib/modules/storage.ko
-
-    # SEC_DMCRYPT efs or cache or lfs partition required
-    exec apply_sec_devenc_init
 
 on post-fs
     # once everything is setup, no need to modify /
@@ -256,11 +256,13 @@ on post-fs
     # give system access to wpa_supplicant.conf for backup and restore
     mkdir /data/wifi 0777 wifi wifi
     mkdir /data/misc/wifi 0771 wifi system
-#    mkdir /data/misc/wifi 0771 wifi wifi  
     chmod 0777 /data/misc/wifi/
     chmod 0777 /data/wifi/
     mkdir /data/misc/dhcp 0777 dhcp dhcp
     mkdir /data/misc/wifi/sockets 0777 wifi wifi
+# Backward compat fix for wifi on infuse gingerbread leaks
+    symlink /data/wifi/bcm_supp.conf /data/misc/wifi/wpa_supplicant.conf
+# end fix
     chmod 0664 /system/etc/wifi/wpa_supplicant.conf
     chown dhcp dhcp /data/misc/dhcp
     mkdir /data/misc/dhcpcd 0771 dhcp dhcp 
@@ -335,7 +337,8 @@ on post-fs
   chmod 0775 /efs/.files/.awt01
   chmod 0775 /efs/.files/.dtt33
   chmod 0775 /efs/.files/.mv309
-	
+  chmod 0775 /etc/.files	
+
 	# Setting device permissions for /dev/fmradio
     chown system system /dev/fmradio
     chmod 0660 /dev/fmradio
@@ -345,14 +348,6 @@ on post-fs
     chmod 0770 /data/lost+found
     chown root root /cache/lost+found
     chmod 0770 /cache/lost+found
-
-#+ Feature_CG2900
-# create data/gps for GPS demon
-#    mkdir /data/gps 771 gps system
-#    chown gps system /data/gps
-#    chown gps root /sys/class/sec/gps/GPS_PWR_EN/value
-#    chmod 660 /sys/class/sec/gps/GPS_PWR_EN/value
-#- Feature_CG2900
 
 # for sensor control
     chown system input /sys/class/input/input0/enable
@@ -546,7 +541,7 @@ on boot
     setprop ro.BACKUP_APP_ADJ 2
     setprop ro.HOME_APP_ADJ 4
     setprop ro.HIDDEN_APP_MIN_ADJ 7
-    setprop ro.CONTENT_PROVIDER_MEM 14
+    setprop ro.CONTENT_PROVIDER_ADJ 14
     setprop ro.EMPTY_APP_ADJ 15
 
 # to enable wifi
@@ -668,7 +663,7 @@ on boot
       chown system system /data/gps
       chmod 770 /data/GPS_NV_Data.bin
       chmod 770 /data/GPS_UTC_Calib.bin
-  chown system system /dev/cg2900_audio
+      chown system system /dev/cg2900_audio
       chmod 0770 /dev/cg2900_audio
 	  chown system system /dev/cg2900_bt_audio
       chmod 0770 /dev/cg2900_bt_audio
